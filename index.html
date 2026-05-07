@@ -161,21 +161,30 @@
       render();
   });
 
-  // ৩. এডমিন লগইন ফাংশন
-  function loginAdmin() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      // মোবাইলের জন্য Redirect পদ্ধতি সবচেয়ে ভালো
-      auth.signInWithRedirect(provider);
-  }
+// এডমিন লগইন ফাংশন
+function loginAdmin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithRedirect(provider);
+}
 
-  // ৪. লগআউট ফাংশন
-  function logoutAdmin() {
-      auth.signOut().then(() => {
-          alert("লগআউট হয়েছে");
-          location.reload();
-      });
-  }
-
+// এটি একদম নিশ্চিত করবে যে রিডাইরেক্ট হওয়ার পর ডাটা চেক হচ্ছে
+window.onload = function() {
+    auth.getRedirectResult().then((result) => {
+        if (result.user) {
+            if(result.user.email === "irbadhon1@gmail.com") {
+                alert("লগইন সফল!");
+                // পেজ রিফ্রেশ করার দরকার নেই, অনলি এডমিন বার দেখাবে
+            } else {
+                alert("অ্যাক্সেস ডিনাইড! আপনি এডমিন নন।");
+                auth.signOut();
+            }
+        }
+    }).catch((error) => {
+        if (error.code !== 'auth/no-auth-event') {
+            console.error("লগইন এরর:", error.message);
+        }
+    });
+};
   // ৫. সাইট সেটিংস লোড করা
   db.ref('siteSettings').on('value', snap => {
       const s = snap.val() || {};
