@@ -124,9 +124,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-
 <script>
-  // Firebase কনফিগারেশন
+  // ১. Firebase কনফিগারেশন
   const firebaseConfig = {
     apiKey: "AIzaSyCFuAqWulUbrZxXELNk-M4_fV0XlC0Q_iE",
     authDomain: "paikari-3cfbc.firebaseapp.com",
@@ -144,9 +143,9 @@
   let adminMode = false, currentFilter = 'সব', adminCurrentTab = 'approved';
   let currentWaNumber = "8801576699828";
 
-  // Auth Observer: চেক করবে আপনি লগইন আছেন কি না
+  // ২. লগইন অবস্থা চেক করা (Auth Observer)
   auth.onAuthStateChanged((user) => {
-      if (user) {
+      if (user && user.email === "irbadhon1@gmail.com") {
           adminMode = true;
           document.getElementById('admin-info').style.display = 'block';
           document.getElementById('admin-tabs-ctrl').style.display = 'flex';
@@ -162,26 +161,22 @@
       render();
   });
 
-function loginAdmin() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    
-    auth.signInWithPopup(provider)
-    .then((result) => {
-        const user = result.user;
-        // শুধুমাত্র আপনার নির্দিষ্ট ইমেইল দিয়ে লগইন করলেই এডমিন প্যানেল খুলবে
-        if(user.email === "irbadhon1@gmail.com") {
-            alert("স্বাগতম বাঁধন! গুগল দিয়ে লগইন সফল হয়েছে।");
-            location.reload();
-        } else {
-            alert("দুঃখিত, এই ইমেইলটি এডমিন হিসেবে নিবন্ধিত নয়।");
-            auth.signOut();
-        }
-    })
-    .catch((error) => {
-        alert("গুগল লগইন ব্যর্থ! কারণ: " + error.message);
-    });
-}
-  // সাইট সেটিংস লোড করা
+  // ৩. এডমিন লগইন ফাংশন
+  function loginAdmin() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      // মোবাইলের জন্য Redirect পদ্ধতি সবচেয়ে ভালো
+      auth.signInWithRedirect(provider);
+  }
+
+  // ৪. লগআউট ফাংশন
+  function logoutAdmin() {
+      auth.signOut().then(() => {
+          alert("লগআউট হয়েছে");
+          location.reload();
+      });
+  }
+
+  // ৫. সাইট সেটিংস লোড করা
   db.ref('siteSettings').on('value', snap => {
       const s = snap.val() || {};
       currentWaNumber = s.wa || "8801576699828";
@@ -205,10 +200,9 @@ function loginAdmin() {
       }).then(() => alert("সেটিংস সেভ হয়েছে!"));
   }
 
-  // ভিজিটর কাউন্টার এবং ডাটা রেন্ডারিং
+  // ৬. ভিজিটর এবং ডাটা রেন্ডারিং
   db.ref('visitorCount').transaction(c => (c || 0) + 1);
   db.ref('visitorCount').on('value', s => { document.getElementById('vCount').innerText = s.val() || 0; });
-
   db.ref('posts').on('value', snap => { window.currentData = snap.val(); render(); });
 
   function render(isSearching = false) {
@@ -231,16 +225,7 @@ function loginAdmin() {
           let bidsHTML = "";
           if(v.all_bids) {
               Object.values(v.all_bids).forEach(b => {
-                  const professionalMsg = encodeURIComponent(
-                    `আসসালামু আলাইকুম,\n` +
-                    `আমি পাইকারি বিড থেকে যোগাযোগ করছি।\n\n` +
-                    `📦 পণ্যের নাম: ${v.name}\n` +
-                    `⚖️ পরিমাণ: ${v.qty}\n` +
-                    `👤 বিডার: ${b.b_name}\n` +
-                    `💰 অফার করা দাম: ${b.b_price}৳\n\n` +
-                    `এই ডিলটি সম্পর্কে আরও কথা বলতে চাই।`
-                  );
-
+                  const professionalMsg = encodeURIComponent(`আসসালামু আলাইকুম,\nআমি পাইকারি বিড থেকে যোগাযোগ করছি।\n\n📦 পণ্য: ${v.name}\n⚖️ পরিমাণ: ${v.qty}\n💰 অফার: ${b.b_price}৳`);
                   bidsHTML += `
                     <div class="bid-item">
                         <b>👤 ${b.b_name}</b> <span style="float:right;">${b.b_price}৳</span>
@@ -256,16 +241,16 @@ function loginAdmin() {
             <div class="demand-card">
                 <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; color:var(--primary)">
                     <span>${v.cat}</span>
-                    <span class="timer-badge" data-start="${v.createdAt}">...</span>
+                    <span class="timer-badge" data-start="${v.createdAt}">⌛ লোড হচ্ছে...</span>
                 </div>
                 <h3>${v.name}</h3>
-                <p style="font-size:14px;">পরিমাণ: <b>${v.qty}</b></p>
+                <p>পরিমাণ: <b>${v.qty}</b></p>
                 <div class="bid-section">
                     ${bidsHTML || '<p style="text-align:center; color:#999; font-size:12px;">কোনো অফার নেই</p>'}
                     <div style="margin-top:15px; background:#f0f4f8; padding:15px; border-radius:15px;">
-                        <input type="text" id="n-${id}" placeholder="নাম" class="form-control">
+                        <input type="text" id="n-${id}" placeholder="আপনার নাম" class="form-control">
                         <input type="number" id="p-${id}" placeholder="দাম" class="form-control">
-                        <input type="number" id="h-${id}" placeholder="মোবাইল" class="form-control">
+                        <input type="number" id="h-${id}" placeholder="১১ ডিজিট মোবাইল" class="form-control">
                         <button onclick="sendBid('${id}')" class="btn-post">অফার দিন</button>
                     </div>
                 </div>
@@ -275,6 +260,7 @@ function loginAdmin() {
       if(isSearching && query.length > 0) { scrollToResults(); }
   }
 
+  // ৭. অন্যান্য জরুরি ফাংশন
   function postToFirebase() {
       const n = document.getElementById('pName').value, q = document.getElementById('pQty').value, c = document.getElementById('cat').value, d = document.getElementById('pDetails').value;
       if(!n || !q) return alert("তথ্য দিন");
@@ -285,7 +271,7 @@ function loginAdmin() {
 
   function sendBid(id) {
       const n = document.getElementById('n-'+id).value, p = document.getElementById('p-'+id).value, h = document.getElementById('h-'+id).value;
-      if(!n || !p || h.length !== 11) return alert("১১ ডিজিটের নম্বরসহ সব তথ্য দিন");
+      if(!n || !p || h.length !== 11) return alert("১১ ডিজিটের মোবাইল নম্বর দিন");
       db.ref('posts/'+id+'/all_bids').push({b_name:n, b_price:p, b_phone:h}).then(() => {
           alert("অফার পাঠানো হয়েছে!"); render();
       });
@@ -296,7 +282,6 @@ function loginAdmin() {
       document.querySelectorAll('#filterContainer .filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       render();
-      scrollToResults();
   }
 
   function switchAdminTab(t, btn) {
@@ -308,16 +293,14 @@ function loginAdmin() {
 
   function appr(id) { db.ref('posts/'+id).update({status:'approved'}); }
   function del(id) { if(confirm("নিশ্চিত মুছবেন?")) db.ref('posts/'+id).remove(); }
-  
-  function scrollToResults() { 
-      document.getElementById('result-anchor').scrollIntoView({ behavior: 'smooth' }); 
-  }
+  function scrollToResults() { document.getElementById('result-anchor').scrollIntoView({ behavior: 'smooth' }); }
 
+  // ৮. টাইমার সেটআপ
   setInterval(() => {
       document.querySelectorAll('.timer-badge').forEach(el => {
           const start = parseInt(el.getAttribute('data-start'));
           const diff = 172800000 - (Date.now() - start);
-          if(diff <= 0) el.innerText = "সময় শেষ";
+          if(diff <= 0) el.innerText = "⌛ সময় শেষ";
           else {
               const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000);
               el.innerText = `⌛ ${h}ঘ : ${m}মি বাকি`;
