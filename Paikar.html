@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>পাইকারি বিড | সরাসরি পাইকারি বাজার</title>
+    
+    <meta name="description" content="বাংলাদেশের প্রথম রিভার্স পাইকারি মার্কেটপ্লেস।">
+    <meta property="og:title" content="পাইকারি বিড">
+    <meta property="og:description" content="সরাসরি পাইকারি বাজারে কেনাবেচা করুন।">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #1a73e8; --dark: #0d47a1; --success: #25d366; --bg: #f4f7fe; --footer-dark: #1c1c1c; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; scroll-behavior: smooth; }
+        .container { max-width: 500px; margin: auto; }
+        
+        .header { background: linear-gradient(135deg, var(--primary), var(--dark)); color: white; padding: 35px 20px; border-radius: 25px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(26,115,232,0.3); }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 800; }
+
+        .sticky-search { position: sticky; top: 0; z-index: 1000; background: var(--bg); padding: 10px 0; display: flex; gap: 5px; }
+        .search-box { flex: 1; padding: 14px 18px; border: 2px solid transparent; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); outline: none; }
+        .search-btn { background: var(--primary); color: white; border: none; border-radius: 12px; padding: 0 15px; cursor: pointer; }
+
+        .filter-box { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
+        .filter-btn { background: white; border: none; padding: 10px 18px; border-radius: 12px; white-space: nowrap; cursor: pointer; font-weight: 600; box-shadow: 0 3px 10px rgba(0,0,0,0.03); }
+        .filter-btn.active { background: var(--primary); color: white; }
+
+        .box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.04); margin-bottom: 25px; }
+        .form-control { width: 100%; padding: 14px; margin-bottom: 12px; border: 1.5px solid #edf2f7; border-radius: 12px; box-sizing: border-box; }
+        .btn-post { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; }
+
+        .demand-card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 20px; border: 1px solid #f0f0f0; }
+        .timer-badge { background: #fff5f5; color: #e53e3e; padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; }
+        
+        .bid-item { background: #f7fafc; border-radius: 12px; padding: 15px; margin-top: 10px; border-left: 4px solid var(--primary); }
+        .btn-deal-main { background: var(--success) !important; color: white !important; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-size: 13px; display: inline-block; font-weight: 700; margin-top: 10px; }
+
+        .visitor-counter { display: none; background: white; padding: 15px; border-radius: 15px; text-align: center; margin-top: 30px; font-weight: bold; color: var(--primary); border: 1px solid #e0e0e0; }
+        .admin-bar { display: none; background: #111; color: #fff; padding: 15px; border-radius: 15px; margin-bottom: 15px; text-align: center; font-weight: bold; }
+        
+        .footer { background: var(--footer-dark); color: #999; padding: 40px 20px; margin-top: 20px; border-radius: 30px 30px 0 0; text-align: center; }
+        .footer h3 { color: white; margin: 0; }
+        .social-icons { display: flex; justify-content: center; gap: 20px; margin: 15px 0; }
+        .social-icons a { color: white; font-size: 22px; }
+
+        #admin-settings { display: none; background: #fff3cd; border: 1px solid #ffeeba; padding: 20px; border-radius: 20px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>পাইকারি বিড</h1>
+        <p>সরাসরি পাইকারি বাজারে কেনাবেচা করুন</p>
+    </div>
+
+    <div id="admin-info" class="admin-bar">🔒 এডমিন মোড একটিভ | <span onclick="logoutAdmin()" style="text-decoration:underline; cursor:pointer;">লগআউট</span></div>
+
+    <div id="admin-settings" class="box">
+        <h3 style="margin-top:0">⚙️ ফুটার সেটিংস</h3>
+        <input type="text" id="setFb" class="form-control" placeholder="ফেসবুক লিঙ্ক">
+        <input type="text" id="setYt" class="form-control" placeholder="ইউটিউব লিঙ্ক">
+        <input type="text" id="setWa" class="form-control" placeholder="হোয়াটসঅ্যাপ নম্বর (যেমন: 88015...)">
+        <textarea id="setDesc" class="form-control" placeholder="ফুটার ডেসক্রিপশন"></textarea>
+        <button class="btn-post" onclick="saveSettings()" style="background:#f39c12">সেটিংস সেভ করুন</button>
+    </div>
+
+    <div class="sticky-search">
+        <input type="text" id="searchInput" class="search-box" placeholder="পণ্যের নাম বা নম্বর দিয়ে খুঁজুন..." onkeyup="render(true)">
+        <button class="search-btn" onclick="scrollToResults()">🔍</button>
+    </div>
+
+    <div class="filter-box" id="filterContainer">
+        <button class="filter-btn active" onclick="filterCat('সব', this)">🌐 সব</button>
+        <button class="filter-btn" onclick="filterCat('খাদ্য', this)">🍚 খাদ্য</button>
+        <button class="filter-btn" onclick="filterCat('বস্ত্র', this)">👕 বস্ত্র</button>
+        <button class="filter-btn" onclick="filterCat('শিক্ষা', this)">📚 শিক্ষা</button>
+        <button class="filter-btn" onclick="filterCat('চিকিৎসা', this)">💊 চিকিৎসা</button>
+        <button class="filter-btn" onclick="filterCat('কসমেটিকস', this)">💄 কসমেটিকস</button>
+        <button class="filter-btn" onclick="filterCat('ইলেকট্রনিক্স', this)">🔌 ইলেকট্রনিক্স</button>
+        <button class="filter-btn" onclick="filterCat('অন্যান্য', this)">📦 অন্যান্য</button>
+    </div>
+
+    <div id="admin-tabs-ctrl" style="display:none; gap: 8px; margin-bottom: 20px;">
+        <button class="filter-btn active" style="flex:1" onclick="switchAdminTab('pending', this)">পেন্ডিং</button>
+        <button class="filter-btn" style="flex:1" onclick="switchAdminTab('approved', this)">লাইভ</button>
+    </div>
+
+    <div class="box" id="post-form-sec">
+        <h2>নতুন চাহিদা পোস্ট করুন</h2>
+        <select id="cat" class="form-control">
+            <option value="খাদ্য">খাদ্য ও মনিহারি</option>
+            <option value="বস্ত্র">পোশাক ও বস্ত্র</option>
+            <option value="অন্যান্য">অন্যান্য</option>
+        </select>
+        <input type="text" id="pName" class="form-control" placeholder="পণ্যের নাম">
+        <input type="text" id="pQty" class="form-control" placeholder="পরিমাণ">
+        <textarea id="pDetails" class="form-control" rows="2" placeholder="বিস্তারিত"></textarea>
+        <button class="btn-post" onclick="postToFirebase()">পোস্ট সাবমিট</button>
+        <p onclick="loginAdmin()" style="text-align:center; font-size:10px; color:#ccc; margin-top:20px; cursor:pointer;">STAFF LOGIN</p>
+    </div>
+
+    <div id="result-anchor"></div>
+    <div id="demand-list">লোড হচ্ছে...</div>
+
+    <div class="visitor-counter" id="vBox">
+        <i class="fas fa-eye"></i> মোট ভিজিটর: <span id="vCount">০</span>
+    </div>
+
+    <footer class="footer">
+        <h3>পাইকারি বিড</h3>
+        <p id="footer-text-display" style="font-size: 14px; color: #bbb; padding: 0 10px;">লোড হচ্ছে...</p>
+        <div class="social-icons">
+            <a href="#" id="fb-link" target="_blank"><i class="fab fa-facebook"></i></a>
+            <a href="#" id="yt-link" target="_blank"><i class="fab fa-youtube"></i></a>
+            <a href="#" id="wa-link" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        </div>
+        <span style="font-size:11px;">© 2015 - 2026 PaikariBid®</span>
+    </footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+<script>
+  // Firebase কনফিগারেশন
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFuAqWulUbrZxXELNk-M4_fV0XlC0Q_iE",
+    authDomain: "paikari-3cfbc.firebaseapp.com",
+    databaseURL: "https://paikari-3cfbc-default-rtdb.firebaseio.com",
+    projectId: "paikari-3cfbc",
+    storageBucket: "paikari-3cfbc.appspot.com",
+    messagingSenderId: "474039383315",
+    appId: "1:474039383315:web:0d53c3070b4313f0907e5b"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const auth = firebase.auth();
+  
+  let adminMode = false, currentFilter = 'সব', adminCurrentTab = 'approved';
+  let currentWaNumber = "8801576699828";
+
+  // Auth Observer: চেক করবে আপনি লগইন আছেন কি না
+  auth.onAuthStateChanged((user) => {
+      if (user) {
+          adminMode = true;
+          document.getElementById('admin-info').style.display = 'block';
+          document.getElementById('admin-tabs-ctrl').style.display = 'flex';
+          document.getElementById('vBox').style.display = 'block';
+          document.getElementById('admin-settings').style.display = 'block';
+          adminCurrentTab = 'pending';
+      } else {
+          adminMode = false;
+          document.getElementById('admin-info').style.display = 'none';
+          document.getElementById('admin-tabs-ctrl').style.display = 'none';
+          document.getElementById('admin-settings').style.display = 'none';
+      }
+      render();
+  });
+
+function loginAdmin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    
+    auth.signInWithPopup(provider)
+    .then((result) => {
+        const user = result.user;
+        // শুধুমাত্র আপনার নির্দিষ্ট ইমেইল দিয়ে লগইন করলেই এডমিন প্যানেল খুলবে
+        if(user.email === "irbadhon1@gmail.com") {
+            alert("স্বাগতম বাঁধন! গুগল দিয়ে লগইন সফল হয়েছে।");
+            location.reload();
+        } else {
+            alert("দুঃখিত, এই ইমেইলটি এডমিন হিসেবে নিবন্ধিত নয়।");
+            auth.signOut();
+        }
+    })
+    .catch((error) => {
+        alert("গুগল লগইন ব্যর্থ! কারণ: " + error.message);
+    });
+}
+  // সাইট সেটিংস লোড করা
+  db.ref('siteSettings').on('value', snap => {
+      const s = snap.val() || {};
+      currentWaNumber = s.wa || "8801576699828";
+      document.getElementById('footer-text-display').innerText = s.desc || "বাংলাদেশের প্রথম রিভার্স পাইকারি মার্কেটপ্লেস।";
+      document.getElementById('fb-link').href = s.fb || "#";
+      document.getElementById('yt-link').href = s.yt || "#";
+      document.getElementById('wa-link').href = "https://wa.me/" + currentWaNumber;
+      document.getElementById('setFb').value = s.fb || "";
+      document.getElementById('setYt').value = s.yt || "";
+      document.getElementById('setWa').value = s.wa || "";
+      document.getElementById('setDesc').value = s.desc || "";
+      render();
+  });
+
+  function saveSettings() {
+      db.ref('siteSettings').update({
+          fb: document.getElementById('setFb').value,
+          yt: document.getElementById('setYt').value,
+          wa: document.getElementById('setWa').value,
+          desc: document.getElementById('setDesc').value
+      }).then(() => alert("সেটিংস সেভ হয়েছে!"));
+  }
+
+  // ভিজিটর কাউন্টার এবং ডাটা রেন্ডারিং
+  db.ref('visitorCount').transaction(c => (c || 0) + 1);
+  db.ref('visitorCount').on('value', s => { document.getElementById('vCount').innerText = s.val() || 0; });
+
+  db.ref('posts').on('value', snap => { window.currentData = snap.val(); render(); });
+
+  function render(isSearching = false) {
+      const area = document.getElementById('demand-list');
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      area.innerHTML = "";
+      const data = window.currentData || {};
+      const keys = Object.keys(data).reverse();
+
+      keys.forEach(id => {
+          const v = data[id];
+          let phoneFound = false;
+          if(v.all_bids) phoneFound = Object.values(v.all_bids).some(b => b.b_phone && b.b_phone.includes(query));
+
+          if(!adminMode && v.status !== 'approved' && !phoneFound) return;
+          if(adminMode && v.status !== adminCurrentTab) return;
+          if(currentFilter !== 'সব' && v.cat !== currentFilter) return;
+          if(query && !v.name.toLowerCase().includes(query) && !phoneFound) return;
+
+          let bidsHTML = "";
+          if(v.all_bids) {
+              Object.values(v.all_bids).forEach(b => {
+                  const professionalMsg = encodeURIComponent(
+                    `আসসালামু আলাইকুম,\n` +
+                    `আমি পাইকারি বিড থেকে যোগাযোগ করছি।\n\n` +
+                    `📦 পণ্যের নাম: ${v.name}\n` +
+                    `⚖️ পরিমাণ: ${v.qty}\n` +
+                    `👤 বিডার: ${b.b_name}\n` +
+                    `💰 অফার করা দাম: ${b.b_price}৳\n\n` +
+                    `এই ডিলটি সম্পর্কে আরও কথা বলতে চাই।`
+                  );
+
+                  bidsHTML += `
+                    <div class="bid-item">
+                        <b>👤 ${b.b_name}</b> <span style="float:right;">${b.b_price}৳</span>
+                        ${adminMode ? `<div style="color:red; font-size:12px;">📞 ${b.b_phone}</div>` : ''}
+                        <div style="text-align:right">
+                            <a href="https://wa.me/${currentWaNumber}?text=${professionalMsg}" class="btn-deal-main" target="_blank">ডিল করুন</a>
+                        </div>
+                    </div>`;
+              });
+          }
+
+          area.innerHTML += `
+            <div class="demand-card">
+                <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; color:var(--primary)">
+                    <span>${v.cat}</span>
+                    <span class="timer-badge" data-start="${v.createdAt}">...</span>
+                </div>
+                <h3>${v.name}</h3>
+                <p style="font-size:14px;">পরিমাণ: <b>${v.qty}</b></p>
+                <div class="bid-section">
+                    ${bidsHTML || '<p style="text-align:center; color:#999; font-size:12px;">কোনো অফার নেই</p>'}
+                    <div style="margin-top:15px; background:#f0f4f8; padding:15px; border-radius:15px;">
+                        <input type="text" id="n-${id}" placeholder="নাম" class="form-control">
+                        <input type="number" id="p-${id}" placeholder="দাম" class="form-control">
+                        <input type="number" id="h-${id}" placeholder="মোবাইল" class="form-control">
+                        <button onclick="sendBid('${id}')" class="btn-post">অফার দিন</button>
+                    </div>
+                </div>
+                ${adminMode ? `<div style="margin-top:10px; display:flex; gap:5px;"><button onclick="appr('${id}')" style="flex:1; border:none; padding:8px; border-radius:5px; background:#2ecc71; color:white;">Approve</button> <button onclick="del('${id}')" style="flex:1; border:none; padding:8px; border-radius:5px; background:#e74c3c; color:white;">Delete</button></div>` : ''}
+            </div>`;
+      });
+      if(isSearching && query.length > 0) { scrollToResults(); }
+  }
+
+  function postToFirebase() {
+      const n = document.getElementById('pName').value, q = document.getElementById('pQty').value, c = document.getElementById('cat').value, d = document.getElementById('pDetails').value;
+      if(!n || !q) return alert("তথ্য দিন");
+      db.ref('posts').push({name:n, qty:q, cat:c, det:d, status:'pending', createdAt: firebase.database.ServerValue.TIMESTAMP}).then(() => { 
+          alert("পোস্ট সাবমিট হয়েছে!"); location.reload(); 
+      });
+  }
+
+  function sendBid(id) {
+      const n = document.getElementById('n-'+id).value, p = document.getElementById('p-'+id).value, h = document.getElementById('h-'+id).value;
+      if(!n || !p || h.length !== 11) return alert("১১ ডিজিটের নম্বরসহ সব তথ্য দিন");
+      db.ref('posts/'+id+'/all_bids').push({b_name:n, b_price:p, b_phone:h}).then(() => {
+          alert("অফার পাঠানো হয়েছে!"); render();
+      });
+  }
+
+  function filterCat(cat, btn) {
+      currentFilter = cat;
+      document.querySelectorAll('#filterContainer .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+      scrollToResults();
+  }
+
+  function switchAdminTab(t, btn) {
+      adminCurrentTab = t;
+      document.querySelectorAll('#admin-tabs-ctrl .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+  }
+
+  function appr(id) { db.ref('posts/'+id).update({status:'approved'}); }
+  function del(id) { if(confirm("নিশ্চিত মুছবেন?")) db.ref('posts/'+id).remove(); }
+  
+  function scrollToResults() { 
+      document.getElementById('result-anchor').scrollIntoView({ behavior: 'smooth' }); 
+  }
+
+  setInterval(() => {
+      document.querySelectorAll('.timer-badge').forEach(el => {
+          const start = parseInt(el.getAttribute('data-start'));
+          const diff = 172800000 - (Date.now() - start);
+          if(diff <= 0) el.innerText = "সময় শেষ";
+          else {
+              const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000);
+              el.innerText = `⌛ ${h}ঘ : ${m}মি বাকি`;
+          }
+      });
+  }, 1000);
+</script>
+</body>
+</html>
