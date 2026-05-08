@@ -37,7 +37,7 @@
         .bid-item { background: #f7fafc; border-radius: 12px; padding: 15px; margin-top: 10px; border-left: 4px solid var(--primary); }
         .btn-deal-main { background: var(--success) !important; color: white !important; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-size: 13px; display: inline-block; font-weight: 700; margin-top: 10px; }
 
-        .visitor-counter { display: none; background: white; padding: 15px; border-radius: 15px; text-align: center; margin-top: 30px; font-weight: bold; color: var(--primary); border: 1px solid #e0e0e0; }
+        .visitor-counter { background: white; padding: 15px; border-radius: 15px; text-align: center; margin-top: 30px; font-weight: bold; color: var(--primary); border: 1px solid #e0e0e0; display: none; }
         .admin-bar { display: none; background: #111; color: #fff; padding: 15px; border-radius: 15px; margin-bottom: 15px; text-align: center; font-weight: bold; }
         
         .footer { background: var(--footer-dark); color: #999; padding: 40px 20px; margin-top: 20px; border-radius: 30px 30px 0 0; text-align: center; }
@@ -93,6 +93,10 @@
         <select id="cat" class="form-control">
             <option value="খাদ্য">খাদ্য ও মনিহারি</option>
             <option value="বস্ত্র">পোশাক ও বস্ত্র</option>
+            <option value="শিক্ষা">শিক্ষা উপকরণ</option>
+            <option value="চিকিৎসা">চিকিৎসা</option>
+            <option value="কসমেটিকস">কসমেটিকস</option>
+            <option value="ইলেকট্রনিক্স">ইলেকট্রনিক্স</option>
             <option value="অন্যান্য">অন্যান্য</option>
         </select>
         <input type="text" id="pName" class="form-control" placeholder="পণ্যের নাম">
@@ -124,26 +128,29 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
 <script>
-  // ১. Firebase কনফিগারেশন
+  // ১. Firebase কনফিগারেশন (সংশোধিত)
   const firebaseConfig = {
-    apiKey: "AIzaSyCFuAqWulUbrZxXELNk-M4_fV0XlC0Q_iE",
+    apiKey: "AIzaSyCFuAqWulUbrZxXElNK0L8m0bod-aEYaSs",
     authDomain: "paikari-3cfbc.firebaseapp.com",
     databaseURL: "https://paikari-3cfbc-default-rtdb.firebaseio.com",
     projectId: "paikari-3cfbc",
-    storageBucket: "paikari-3cfbc.appspot.com",
+    storageBucket: "paikari-3cfbc.firebasestorage.app",
     messagingSenderId: "474039383315",
-    appId: "1:474039383315:web:0d53c3070b4313f0907e5b"
+    appId: "1:474039383315:web:0b7cc4a9d1bbf0757696e6"
   };
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const auth = firebase.auth();
-  
-  let adminMode = false, currentFilter = 'সব', adminCurrentTab = 'approved';
+
+  let adminMode = false;
+  let adminCurrentTab = 'approved';
+  let currentFilter = 'সব';
   let currentWaNumber = "8801576699828";
 
-  // ২. লগইন অবস্থা চেক করা (Auth Observer)
+  // ২. Auth Observer
   auth.onAuthStateChanged((user) => {
       if (user && user.email === "irbadhon1@gmail.com") {
           adminMode = true;
@@ -157,63 +164,20 @@
           document.getElementById('admin-info').style.display = 'none';
           document.getElementById('admin-tabs-ctrl').style.display = 'none';
           document.getElementById('admin-settings').style.display = 'none';
+          adminCurrentTab = 'approved';
       }
       render();
   });
 
-// এডমিন লগইন ফাংশন
-function loginAdmin() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithRedirect(provider);
-}
-
-// এটি একদম নিশ্চিত করবে যে রিডাইরেক্ট হওয়ার পর ডাটা চেক হচ্ছে
-window.onload = function() {
-    auth.getRedirectResult().then((result) => {
-        if (result.user) {
-            if(result.user.email === "irbadhon1@gmail.com") {
-                alert("লগইন সফল!");
-                // পেজ রিফ্রেশ করার দরকার নেই, অনলি এডমিন বার দেখাবে
-            } else {
-                alert("অ্যাক্সেস ডিনাইড! আপনি এডমিন নন।");
-                auth.signOut();
-            }
-        }
-    }).catch((error) => {
-        if (error.code !== 'auth/no-auth-event') {
-            console.error("লগইন এরর:", error.message);
-        }
-    });
-};
-  // ৫. সাইট সেটিংস লোড করা
-  db.ref('siteSettings').on('value', snap => {
-      const s = snap.val() || {};
-      currentWaNumber = s.wa || "8801576699828";
-      document.getElementById('footer-text-display').innerText = s.desc || "বাংলাদেশের প্রথম রিভার্স পাইকারি মার্কেটপ্লেস।";
-      document.getElementById('fb-link').href = s.fb || "#";
-      document.getElementById('yt-link').href = s.yt || "#";
-      document.getElementById('wa-link').href = "https://wa.me/" + currentWaNumber;
-      document.getElementById('setFb').value = s.fb || "";
-      document.getElementById('setYt').value = s.yt || "";
-      document.getElementById('setWa').value = s.wa || "";
-      document.getElementById('setDesc').value = s.desc || "";
-      render();
-  });
-
-  function saveSettings() {
-      db.ref('siteSettings').update({
-          fb: document.getElementById('setFb').value,
-          yt: document.getElementById('setYt').value,
-          wa: document.getElementById('setWa').value,
-          desc: document.getElementById('setDesc').value
-      }).then(() => alert("সেটিংস সেভ হয়েছে!"));
+  // ৩. এডমিন ফাংশন
+  function loginAdmin() {
+      const email = prompt("ইমেইল:");
+      const pass = prompt("পাসওয়ার্ড:");
+      if(email && pass) auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
   }
+  function logoutAdmin() { auth.signOut().then(() => location.reload()); }
 
-  // ৬. ভিজিটর এবং ডাটা রেন্ডারিং
-  db.ref('visitorCount').transaction(c => (c || 0) + 1);
-  db.ref('visitorCount').on('value', s => { document.getElementById('vCount').innerText = s.val() || 0; });
-  db.ref('posts').on('value', snap => { window.currentData = snap.val(); render(); });
-
+  // ৪. রেন্ডারিং (সার্চ ও হোয়াটসঅ্যাপ মেসেজসহ)
   function render(isSearching = false) {
       const area = document.getElementById('demand-list');
       const query = document.getElementById('searchInput').value.toLowerCase();
@@ -223,6 +187,8 @@ window.onload = function() {
 
       keys.forEach(id => {
           const v = data[id];
+          
+          // সার্চ লজিক (ফোন নম্বর বা নাম দিয়ে)
           let phoneFound = false;
           if(v.all_bids) phoneFound = Object.values(v.all_bids).some(b => b.b_phone && b.b_phone.includes(query));
 
@@ -234,7 +200,9 @@ window.onload = function() {
           let bidsHTML = "";
           if(v.all_bids) {
               Object.values(v.all_bids).forEach(b => {
+                  // হোয়াটসঅ্যাপ অটো-মেসেজ ফরম্যাট
                   const professionalMsg = encodeURIComponent(`আসসালামু আলাইকুম,\nআমি পাইকারি বিড থেকে যোগাযোগ করছি।\n\n📦 পণ্য: ${v.name}\n⚖️ পরিমাণ: ${v.qty}\n💰 অফার: ${b.b_price}৳`);
+                  
                   bidsHTML += `
                     <div class="bid-item">
                         <b>👤 ${b.b_name}</b> <span style="float:right;">${b.b_price}৳</span>
@@ -250,7 +218,7 @@ window.onload = function() {
             <div class="demand-card">
                 <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; color:var(--primary)">
                     <span>${v.cat}</span>
-                    <span class="timer-badge" data-start="${v.createdAt}">⌛ লোড হচ্ছে...</span>
+                    <span class="timer-badge" data-start="${v.createdAt}">⌛ হিসাব হচ্ছে...</span>
                 </div>
                 <h3>${v.name}</h3>
                 <p>পরিমাণ: <b>${v.qty}</b></p>
@@ -266,24 +234,44 @@ window.onload = function() {
                 ${adminMode ? `<div style="margin-top:10px; display:flex; gap:5px;"><button onclick="appr('${id}')" style="flex:1; border:none; padding:8px; border-radius:5px; background:#2ecc71; color:white;">Approve</button> <button onclick="del('${id}')" style="flex:1; border:none; padding:8px; border-radius:5px; background:#e74c3c; color:white;">Delete</button></div>` : ''}
             </div>`;
       });
-      if(isSearching && query.length > 0) { scrollToResults(); }
+      if(isSearching && query.length > 0) scrollToResults();
   }
 
-  // ৭. অন্যান্য জরুরি ফাংশন
+  // ৫. ডাটাবেজ অপারেশন
+  db.ref('posts').on('value', snap => { window.currentData = snap.val(); render(); });
+  
   function postToFirebase() {
       const n = document.getElementById('pName').value, q = document.getElementById('pQty').value, c = document.getElementById('cat').value, d = document.getElementById('pDetails').value;
       if(!n || !q) return alert("তথ্য দিন");
-      db.ref('posts').push({name:n, qty:q, cat:c, det:d, status:'pending', createdAt: firebase.database.ServerValue.TIMESTAMP}).then(() => { 
-          alert("পোস্ট সাবমিট হয়েছে!"); location.reload(); 
-      });
+      db.ref('posts').push({
+          name: n, qty: q, cat: c, det: d, status: 'pending', createdAt: firebase.database.ServerValue.TIMESTAMP
+      }).then(() => { alert("পোস্ট সাবমিট হয়েছে!"); location.reload(); });
   }
 
   function sendBid(id) {
       const n = document.getElementById('n-'+id).value, p = document.getElementById('p-'+id).value, h = document.getElementById('h-'+id).value;
       if(!n || !p || h.length !== 11) return alert("১১ ডিজিটের মোবাইল নম্বর দিন");
-      db.ref('posts/'+id+'/all_bids').push({b_name:n, b_price:p, b_phone:h}).then(() => {
-          alert("অফার পাঠানো হয়েছে!"); render();
-      });
+      db.ref('posts/'+id+'/all_bids').push({b_name:n, b_price:p, b_phone:h}).then(() => alert("অফার পাঠানো হয়েছে!"));
+  }
+
+  // ৬. সেটিংস ও ফিল্টার
+  db.ref('siteSettings').on('value', snap => {
+      const s = snap.val() || {};
+      currentWaNumber = s.wa || "8801576699828";
+      document.getElementById('footer-text-display').innerText = s.desc || "বাংলাদেশের প্রথম রিভার্স পাইকারি মার্কেটপ্লেস।";
+      document.getElementById('fb-link').href = s.fb || "#";
+      document.getElementById('yt-link').href = s.yt || "#";
+      document.getElementById('wa-link').href = "https://wa.me/" + currentWaNumber;
+      document.getElementById('setFb').value = s.fb || "";
+      document.getElementById('setYt').value = s.yt || "";
+      document.getElementById('setWa').value = s.wa || "";
+      document.getElementById('setDesc').value = s.desc || "";
+  });
+
+  function saveSettings() {
+      db.ref('siteSettings').update({
+          fb: document.getElementById('setFb').value, yt: document.getElementById('setYt').value, wa: document.getElementById('setWa').value, desc: document.getElementById('setDesc').value
+      }).then(() => alert("সেটিংস সেভ হয়েছে!"));
   }
 
   function filterCat(cat, btn) {
@@ -304,12 +292,16 @@ window.onload = function() {
   function del(id) { if(confirm("নিশ্চিত মুছবেন?")) db.ref('posts/'+id).remove(); }
   function scrollToResults() { document.getElementById('result-anchor').scrollIntoView({ behavior: 'smooth' }); }
 
-  // ৮. টাইমার সেটআপ
+  // ৭. ভিজিটর ও টাইমার
+  db.ref('visitorCount').transaction(c => (c || 0) + 1);
+  db.ref('visitorCount').on('value', s => { document.getElementById('vCount').innerText = s.val() || 0; });
+
   setInterval(() => {
       document.querySelectorAll('.timer-badge').forEach(el => {
           const start = parseInt(el.getAttribute('data-start'));
           const diff = 172800000 - (Date.now() - start);
-          if(diff <= 0) el.innerText = "⌛ সময় শেষ";
+          if(isNaN(start)) el.innerText = "⌛ প্রসেসিং";
+          else if(diff <= 0) el.innerText = "⌛ সময় শেষ";
           else {
               const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000);
               el.innerText = `⌛ ${h}ঘ : ${m}মি বাকি`;
